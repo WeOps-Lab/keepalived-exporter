@@ -66,11 +66,15 @@ func main() {
 		}
 	}
 
-	keepalivedCollector := collector.NewKeepalivedCollector(*keepalivedJSON, *keepalivedCheckScript, c)
-	prometheus.MustRegister(keepalivedCollector)
-	prometheus.MustRegister(version.NewCollector("keepalived_exporter"))
+	// Create a custom registry without Go and process collectors
+	registry := prometheus.NewRegistry()
 
-	http.Handle(*metricsPath, promhttp.Handler())
+	keepalivedCollector := collector.NewKeepalivedCollector(*keepalivedJSON, *keepalivedCheckScript, c)
+	registry.MustRegister(keepalivedCollector)
+	registry.MustRegister(version.NewCollector("keepalived_exporter"))
+
+	// Use custom registry instead of default registry
+	http.Handle(*metricsPath, promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
 	http.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
 		_, err := w.Write([]byte(`<html>
 		<head><title>Keepalived Exporter</title></head>
