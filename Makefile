@@ -14,8 +14,9 @@ LD_FLAGS += -X github.com/prometheus/common/version.Version=$(VERSION)
 LD_FLAGS += -X github.com/prometheus/common/version.Revision=$(COMMIT)
 LD_FLAGS += -X github.com/prometheus/common/version.Branch=$(BRANCH)
 LD_FLAGS += -X github.com/prometheus/common/version.BuildDate=$(BUILD_TIME)
+OUTDIR ?= .
 
-.PHONY: all dep lint build unused clean
+.PHONY: all dep lint build unused clean go-build-linux-amd64 go-build-linux-arm64 go-build-windows-amd64
 
 all: dep build
 
@@ -42,3 +43,10 @@ unused: dep
 
 clean: ## Remove previous build and release files
 	@rm -f $(PROJECT_NAME)
+
+go-build-linux-amd64: ## Build for Linux amd64
+	GOOS=linux GOARCH=amd64 go build -v -ldflags="$(LD_FLAGS)" -o $(OUTDIR)/keepalived_exporter-linux-amd64 $(PKG)/cmd/$(PROJECT_NAME)
+go-build-linux-arm64: ## Build for Linux arm64
+	GOOS=linux GOARCH=arm64 go build -v -ldflags="$(LD_FLAGS)" -o $(OUTDIR)/keepalived_exporter-linux-arm64 $(PKG)/cmd/$(PROJECT_NAME)
+
+
